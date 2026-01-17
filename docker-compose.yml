@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: salatapi
+      POSTGRES_PASSWORD: salatapi_password
+      POSTGRES_DB: salatapi
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://salatapi:salatapi_password@postgres/salatapi
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+
+  celery-worker:
+    build: .
+    command: celery -A tasks.monthly_calculator worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql://salatapi:salatapi_password@postgres/salatapi
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+
+  celery-beat:
+    build: .
+    command: celery -A tasks.monthly_calculator beat --loglevel=info
+    environment:
+      DATABASE_URL: postgresql://salatapi:salatapi_password@postgres/salatapi
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+
+  flower:
+    build: .
+    command: celery -A tasks.monthly_calculator flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      DATABASE_URL: postgresql://salatapi:salatapi_password@postgres/salatapi
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  postgres_data:
