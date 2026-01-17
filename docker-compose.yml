@@ -4,9 +4,9 @@ services:
   postgres:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER: salatapi
-      POSTGRES_PASSWORD: salatapi_password
-      POSTGRES_DB: salatapi
+      POSTGRES_USER: salah_prayer_api
+      POSTGRES_PASSWORD: salah_prayer_api_password
+      POSTGRES_DB: salah_prayer_api
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -22,7 +22,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://salatapi:salatapi_password@postgres/salatapi
+      DATABASE_URL: postgresql://salah_prayer_api:salah_prayer_api_password@postgres/salah_prayer_api
       REDIS_URL: redis://redis:6379/0
     depends_on:
       - postgres
@@ -32,7 +32,7 @@ services:
     build: .
     command: celery -A tasks.monthly_calculator worker --loglevel=info
     environment:
-      DATABASE_URL: postgresql://salatapi:salatapi_password@postgres/salatapi
+      DATABASE_URL: postgresql://salah_prayer_api:salah_prayer_api_password@postgres/salah_prayer_api
       REDIS_URL: redis://redis:6379/0
     depends_on:
       - postgres
@@ -42,7 +42,7 @@ services:
     build: .
     command: celery -A tasks.monthly_calculator beat --loglevel=info
     environment:
-      DATABASE_URL: postgresql://salatapi:salatapi_password@postgres/salatapi
+      DATABASE_URL: postgresql://salah_prayer_api:salah_prayer_api_password@postgres/salah_prayer_api
       REDIS_URL: redis://redis:6379/0
     depends_on:
       - postgres
@@ -54,7 +54,7 @@ services:
     ports:
       - "5555:5555"
     environment:
-      DATABASE_URL: postgresql://salatapi:salatapi_password@postgres/salatapi
+      DATABASE_URL: postgresql://salah_prayer_api:salah_prayer_api_password@postgres/salah_prayer_api
       REDIS_URL: redis://redis:6379/0
     depends_on:
       - postgres
