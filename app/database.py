@@ -71,8 +71,10 @@ class Database:
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
     
     def init_db(self):
-        """Initialize database tables."""
-        Base.metadata.create_all(bind=self.engine)
+    """Initialize database tables."""
+    # Temporarily disable database initialization
+    # Base.metadata.create_all(bind=self.engine)
+    print("Database initialization skipped - running in cache-only mode")
     
     def get_session(self):
         """Get database session."""
