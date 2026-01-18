@@ -6,9 +6,9 @@ Main FastAPI application with iPhone-optimized caching.
 import time
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date as date_type
 from typing import Dict, List, Optional
-import pytz
+import math
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,11 +16,11 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from prometheus_client import Counter, Histogram, generate_latest
 
-from .calculations import AstronomicalCalculator
-from .calibrations import FaziletCalibration
-from .models import *
-from .database import db
-from .iphone_cache import iphone_cache  # iPhone-optimized caching
+from app.calculations import AstronomicalCalculator
+from app.calibrations import FaziletCalibration
+from app.models import *
+from app.database import db
+from app.iphonecache import iPhoneOptimizedCache  # Fixed import name
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -55,6 +55,9 @@ REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests', ['method',
 REQUEST_LATENCY = Histogram('http_request_duration_seconds', 'HTTP request latency', ['endpoint'])
 CACHE_HITS = Counter('cache_hits_total', 'Cache hits', ['endpoint'])
 CACHE_MISSES = Counter('cache_misses_total', 'Cache misses', ['endpoint'])
+
+# Initialize cache
+iphone_cache = iPhoneOptimizedCache()
 
 # Startup event
 @app.on_event("startup")
@@ -243,7 +246,7 @@ async def get_daily_prayer_times(
         return PrayerTimesResponse(**response_data)
         
     except Exception as e:
-        logger.error(f"Error calculating prayer times: {e}")
+        logger.error(f"Error calculating prayer times: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Calculation error: {str(e)}")
 
 # Monthly prayer times endpoint
@@ -318,7 +321,7 @@ async def get_monthly_prayer_times(
         )
         
     except Exception as e:
-        logger.error(f"Error calculating monthly times: {e}")
+        logger.error(f"Error calculating monthly times: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Calculation error: {str(e)}")
 
 # Qibla endpoint
@@ -341,7 +344,7 @@ async def get_qibla_direction(request: QiblaRequest):
         )
         
     except Exception as e:
-        logger.error(f"Error calculating Qibla: {e}")
+        logger.error(f"Error calculating Qibla: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Qibla calculation error: {str(e)}")
 
 # Countries endpoint
@@ -361,7 +364,7 @@ async def get_supported_countries():
         }
         
     except Exception as e:
-        logger.error(f"Error getting countries: {e}")
+        logger.error(f"Error getting countries: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 # Cache statistics endpoint
@@ -394,7 +397,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 # Background task functions
-async def log_calibration(country: str, date: date, times: Dict[str, str]):
+async def log_calibration(country: str, date: date_type, times: Dict[str, str]):
     """Log calibration for verification."""
     try:
         # This can be implemented later with a database
@@ -409,8 +412,8 @@ if __name__ == "__main__":
     uvicorn.run(
         app,
         host="0.0.0.0",
-        port=8000,
-        workers=2,
+        port=int(os.getenv("PORT", 8000)),
+        workers=int(os.getenv("WEB_CONCURRENCY", 1)),
         log_level="info",
         access_log=True
     )
