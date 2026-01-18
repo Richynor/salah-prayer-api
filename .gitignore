@@ -36,17 +36,13 @@ venv.bak/
 *.swo
 *~
 
-# Database
-*.db
-*.sqlite3
-
 # Logs
 *.log
-
-# Coverage
-.coverage
-htmlcov/
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Coverage
+.coverage
+htmlcov/
