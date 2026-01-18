@@ -1,3 +1,5 @@
+# Completely replace calculations.py with corrected version
+cat > /app/app/calculations.py << 'EOF'
 """
 PROFESSIONAL ASTRONOMICAL CALCULATIONS
 High-precision prayer time calculations using verified algorithms.
@@ -56,19 +58,19 @@ class AstronomicalCalculator:
     
     @staticmethod
     def equation_of_center(jd: float, M: float) -> float:
-    """Calculate equation of center (C)."""
-    T = (jd - AstronomicalCalculator.J2000_EPOCH) / 36525.0
-    M_rad = math.radians(M)
-    C = (1.914602 - 0.004817 * T - 0.000014 * T**2) * math.sin(M_rad)
-    C += (0.019993 - 0.000101 * T) * math.sin(2 * M_rad)
-    C += 0.000289 * math.sin(3 * M_rad)
-    return C
+        """Calculate equation of center (C)."""
+        T = (jd - AstronomicalCalculator.J2000_EPOCH) / 36525.0
+        M_rad = math.radians(M)
+        C = (1.914602 - 0.004817 * T - 0.000014 * T**2) * math.sin(M_rad)
+        C += (0.019993 - 0.000101 * T) * math.sin(2 * M_rad)
+        C += 0.000289 * math.sin(3 * M_rad)
+        return C
     
     @staticmethod
     def sun_longitude(jd: float) -> float:
         """Calculate true solar longitude."""
         M = AstronomicalCalculator.mean_solar_anomaly(jd)
-        C = AstronomicalCalculator.equation_of_center(M)
+        C = AstronomicalCalculator.equation_of_center(jd, M)
         L = AstronomicalCalculator.mean_solar_longitude(jd)
         return (L + C) % 360
     
@@ -83,31 +85,22 @@ class AstronomicalCalculator:
         return math.degrees(math.asin(sin_dec))
     
     @staticmethod
-def equation_of_time(jd: float) -> float:
-    """Calculate equation of time in minutes."""
-    L = AstronomicalCalculator.mean_solar_longitude(jd)
-    M = AstronomicalCalculator.mean_solar_anomaly(jd)
-    C = AstronomicalCalculator.equation_of_center(jd, M)  # CHANGED: Added jd
-    
-    # True solar longitude
-    lambda_sun = (L + C) % 360
-    
-    # Right ascension
-    e_rad = math.radians(AstronomicalCalculator.OBLIQUITY_ECLIPTIC)
-    lambda_rad = math.radians(lambda_sun)
-    
-    alpha = math.atan2(math.cos(e_rad) * math.sin(lambda_rad), 
-                      math.cos(lambda_rad))
-    alpha = math.degrees(alpha) % 360
-    
-    # Equation of time
-    eq_time = L - alpha
-    if eq_time > 180:
-        eq_time -= 360
-    elif eq_time < -180:
-        eq_time += 360
-    
-    return eq_time * 4  # Convert degrees to minutes
+    def equation_of_time(jd: float) -> float:
+        """Calculate equation of time in minutes."""
+        L = AstronomicalCalculator.mean_solar_longitude(jd)
+        M = AstronomicalCalculator.mean_solar_anomaly(jd)
+        C = AstronomicalCalculator.equation_of_center(jd, M)
+        
+        # True solar longitude
+        lambda_sun = (L + C) % 360
+        
+        # Right ascension
+        e_rad = math.radians(AstronomicalCalculator.OBLIQUITY_ECLIPTIC)
+        lambda_rad = math.radians(lambda_sun)
+        
+        alpha = math.atan2(math.cos(e_rad) * math.sin(lambda_rad), 
+                          math.cos(lambda_rad))
+        alpha = math.degrees(alpha) % 360
         
         # Equation of time
         eq_time = L - alpha
@@ -255,3 +248,7 @@ def equation_of_time(jd: float) -> float:
                 times_formatted[prayer] = "N/A"
         
         return times_formatted
+EOF
+
+# Then redeploy
+railway up
