@@ -1,12 +1,10 @@
-# Completely replace calibrations.py with SINGLE, CORRECT version
-cat > /app/app/calibrations.py << 'EOF'
 """
 FAZILET CALIBRATION DATABASE
 Country-specific calibrations to exactly match Fazilet times.
 Based on extensive testing and verification.
 """
 
-import math  # CRITICAL: MUST BE AT TOP
+import math
 from typing import Dict, List, Optional
 from datetime import date
 import json
