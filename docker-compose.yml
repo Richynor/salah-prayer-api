@@ -1,91 +1,118 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_USER: salah_prayer_api
-      POSTGRES_PASSWORD: salah_prayer_api_password
-      POSTGRES_DB: salah_prayer_api
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U salah_prayer_api"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
+  # API Service (Main Application)
   api:
     build: .
+    container_name: salah_prayer_api
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://salah_prayer_api:salah_prayer_api_password@postgres/salah_prayer_api
-      REDIS_URL: redis://redis:6379/0
-      ENVIRONMENT: development
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      # Application Settings
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - LOG_LEVEL=info
+      
+      # iPhone Optimization
+      - IPHONE_CACHE_SIZE=1000
+      - IPHONE_MAX_AGE=1440
+      
+      # Cache Settings
+      - CACHE_TTL_DAILY=3600
+      - CACHE_TTL_MONTHLY=86400
+      - CACHE_TTL_QIBLA=604800
+      
+      # Security
+      - CORS_ORIGINS=*
+      - RATE_LIMIT_ENABLED=true
+      - MAX_REQUESTS_PER_MINUTE=60
+      
+      # For future database support (optional)
+      # - DATABASE_URL=postgresql://salah_api:salah_password@postgres/salah_db
+      # - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./app:/app/app
+      - ./requirements.txt:/app/requirements.txt
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-
-  celery-worker:
-    build: .
-    command: python -m app.worker
+      start_period: 40s
+    networks:
+      - salah_network
+  
+  # PostgreSQL Database (Optional - for future features)
+  postgres:
+    image: postgres:15-alpine
+    container_name: salah_postgres
     environment:
-      DATABASE_URL: postgresql://salah_prayer_api:salah_prayer_api_password@postgres/salah_prayer_api
-      REDIS_URL: redis://redis:6379/0
-      CELERY_LOG_LEVEL: info
-    depends_on:
-      - postgres
-      - redis
-    restart: unless-stopped
-
-  celery-beat:
-    build: .
-    command: python -m app.beat
-    environment:
-      DATABASE_URL: postgresql://salah_prayer_api:salah_prayer_api_password@postgres/salah_prayer_api
-      REDIS_URL: redis://redis:6379/0
-      CELERY_LOG_LEVEL: info
-    depends_on:
-      - postgres
-      - redis
-    restart: unless-stopped
-
-  flower:
-    build: .
-    command: python -m app.flower
+      - POSTGRES_USER=salah_api
+      - POSTGRES_PASSWORD=salah_password
+      - POSTGRES_DB=salah_db
     ports:
-      - "5555:5555"
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - salah_network
+    restart: unless-stopped
+  
+  # Redis Cache (Optional - for future scaling)
+  redis:
+    image: redis:7-alpine
+    container_name: salah_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - salah_network
+    restart: unless-stopped
+  
+  # pgAdmin (Optional - Database Management UI)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: salah_pgadmin
     environment:
-      REDIS_URL: redis://redis:6379/0
-      FLOWER_PORT: 5555
-      FLOWER_BASIC_AUTH: admin:changeme
+      - PGADMIN_DEFAULT_EMAIL=admin@salah.com
+      - PGADMIN_DEFAULT_PASSWORD=admin123
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - salah_network
+    restart: unless-stopped
+    depends_on:
+      - postgres
+  
+  # Redis Commander (Optional - Redis Management UI)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: salah_redis_commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    networks:
+      - salah_network
+    restart: unless-stopped
     depends_on:
       - redis
-    restart: unless-stopped
 
+# Networks
+networks:
+  salah_network:
+    driver: bridge
+
+# Volumes
 volumes:
   postgres_data:
+    driver: local
   redis_data:
+    driver: local
+  pgadmin_data:
+    driver: local
