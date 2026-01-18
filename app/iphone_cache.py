@@ -90,3 +90,7 @@ class iPhoneOptimizedCache:
             "active_entries": len(self._cache),
             "memory_usage_mb": sum(len(str(v)) for v in self._cache.values()) / 1024 / 1024
         }
+
+
+# Global cache instance
+iphone_cache = iPhoneOptimizedCache()
