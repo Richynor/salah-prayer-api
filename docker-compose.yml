@@ -11,11 +11,24 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U salah_prayer_api"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   api:
     build: .
@@ -24,41 +37,55 @@ services:
     environment:
       DATABASE_URL: postgresql://salah_prayer_api:salah_prayer_api_password@postgres/salah_prayer_api
       REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: development
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   celery-worker:
     build: .
-    command: celery -A tasks.monthly_calculator worker --loglevel=info
+    command: python -m app.worker
     environment:
       DATABASE_URL: postgresql://salah_prayer_api:salah_prayer_api_password@postgres/salah_prayer_api
       REDIS_URL: redis://redis:6379/0
+      CELERY_LOG_LEVEL: info
     depends_on:
       - postgres
       - redis
+    restart: unless-stopped
 
   celery-beat:
     build: .
-    command: celery -A tasks.monthly_calculator beat --loglevel=info
+    command: python -m app.beat
     environment:
       DATABASE_URL: postgresql://salah_prayer_api:salah_prayer_api_password@postgres/salah_prayer_api
       REDIS_URL: redis://redis:6379/0
+      CELERY_LOG_LEVEL: info
     depends_on:
       - postgres
       - redis
+    restart: unless-stopped
 
   flower:
     build: .
-    command: celery -A tasks.monthly_calculator flower --port=5555
+    command: python -m app.flower
     ports:
       - "5555:5555"
     environment:
-      DATABASE_URL: postgresql://salah_prayer_api:salah_prayer_api_password@postgres/salah_prayer_api
       REDIS_URL: redis://redis:6379/0
+      FLOWER_PORT: 5555
+      FLOWER_BASIC_AUTH: admin:changeme
     depends_on:
-      - postgres
       - redis
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+  redis_data:
