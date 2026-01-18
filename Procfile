@@ -1,4 +1,1 @@
-web: uvicorn app.main:app --host=0.0.0.0 --port=${PORT:-8000} --workers=2 --timeout-keep-alive=30 --log-level=info
-# worker: python -m app.worker
-# beat: python -m app.beat
-# flower: python -m app.flower
+web: uvicorn app.main:app --host=0.0.0.0 --port=${PORT:-8000} --workers=${WEB_CONCURRENCY:-2}
