@@ -118,7 +118,6 @@ async def root():
 
 # Daily prayer times endpoint
 @app.post("/api/v1/times/daily", response_model=PrayerTimesResponse)
-@cache(expire=3600)  # Cache for 1 hour
 async def get_daily_prayer_times(
     request: PrayerTimesRequest,
     background_tasks: BackgroundTasks
@@ -194,7 +193,6 @@ async def get_daily_prayer_times(
 
 # Monthly prayer times endpoint
 @app.post("/api/v1/times/monthly", response_model=MonthlyPrayerTimesResponse)
-@cache(expire=86400)  # Cache for 24 hours
 async def get_monthly_prayer_times(
     request: MonthlyPrayerTimesRequest,
     background_tasks: BackgroundTasks
@@ -284,7 +282,6 @@ async def get_monthly_prayer_times(
 
 # Qibla endpoint
 @app.post("/api/v1/qibla", response_model=QiblaResponse)
-@cache(expire=604800)  # Cache for 1 week (Qibla doesn't change)
 async def get_qibla_direction(request: QiblaRequest):
     """
     Get Qibla direction for a location.
