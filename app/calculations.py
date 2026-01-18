@@ -83,22 +83,31 @@ class AstronomicalCalculator:
         return math.degrees(math.asin(sin_dec))
     
     @staticmethod
-    def equation_of_time(jd: float) -> float:
-        """Calculate equation of time in minutes."""
-        L = AstronomicalCalculator.mean_solar_longitude(jd)
-        M = AstronomicalCalculator.mean_solar_anomaly(jd)
-        C = AstronomicalCalculator.equation_of_center(M)
-        
-        # True solar longitude
-        lambda_sun = (L + C) % 360
-        
-        # Right ascension
-        e_rad = math.radians(AstronomicalCalculator.OBLIQUITY_ECLIPTIC)
-        lambda_rad = math.radians(lambda_sun)
-        
-        alpha = math.atan2(math.cos(e_rad) * math.sin(lambda_rad), 
-                          math.cos(lambda_rad))
-        alpha = math.degrees(alpha) % 360
+def equation_of_time(jd: float) -> float:
+    """Calculate equation of time in minutes."""
+    L = AstronomicalCalculator.mean_solar_longitude(jd)
+    M = AstronomicalCalculator.mean_solar_anomaly(jd)
+    C = AstronomicalCalculator.equation_of_center(jd, M)  # CHANGED: Added jd
+    
+    # True solar longitude
+    lambda_sun = (L + C) % 360
+    
+    # Right ascension
+    e_rad = math.radians(AstronomicalCalculator.OBLIQUITY_ECLIPTIC)
+    lambda_rad = math.radians(lambda_sun)
+    
+    alpha = math.atan2(math.cos(e_rad) * math.sin(lambda_rad), 
+                      math.cos(lambda_rad))
+    alpha = math.degrees(alpha) % 360
+    
+    # Equation of time
+    eq_time = L - alpha
+    if eq_time > 180:
+        eq_time -= 360
+    elif eq_time < -180:
+        eq_time += 360
+    
+    return eq_time * 4  # Convert degrees to minutes
         
         # Equation of time
         eq_time = L - alpha
