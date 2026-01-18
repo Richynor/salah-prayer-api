@@ -175,6 +175,7 @@ class FaziletCalibration:
     @classmethod
     def calculate_qibla(cls, latitude: float, longitude: float) -> float:
         """Calculate Qibla direction with high precision."""
+        import math  # Explicit import to avoid any issues
         # Kaaba coordinates
         kaaba_lat = 21.4225
         kaaba_lon = 39.8262
@@ -213,20 +214,3 @@ class FaziletCalibration:
         
         # Sort by name
         return sorted(countries, key=lambda x: x['name'])
-    
-    @classmethod
-    def verify_calibration(cls, country: str, date_str: str, 
-                          actual_times: Dict[str, str]) -> Dict:
-        """Verify calibration against actual Fazilet times."""
-        calibration = cls.get_calibration(country)
-        
-        # This would compare calculated times with actual times
-        # and return accuracy report
-        return {
-            'country': country,
-            'date': date_str,
-            'calibration_used': calibration,
-            'actual_times': actual_times,
-            'status': 'verification_pending'
-        }
-EOF
