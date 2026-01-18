@@ -1,4 +1,4 @@
-# Core
+# Core - Updated for Python 3.12 compatibility
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 pydantic==2.5.0
@@ -15,12 +15,12 @@ redis==5.0.1
 celery==5.3.4
 flower==2.0.1
 
-# Utilities
-pytz==2023.3
+# Utilities - UPDATED VERSIONS FOR PYTHON 3.12
+pytz==2024.1
 python-dateutil==2.8.2
 requests==2.31.0
-numpy==1.24.3
-pandas==2.0.3
+numpy==1.26.0  # CHANGED: Compatible with Python 3.12
+pandas==2.1.0  # CHANGED: Compatible with Python 3.12
 
 # Monitoring
 prometheus-client==0.19.0
