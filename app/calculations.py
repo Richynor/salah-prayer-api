@@ -55,13 +55,14 @@ class AstronomicalCalculator:
         return M % 360
     
     @staticmethod
-    def equation_of_center(M: float) -> float:
-        """Calculate equation of center (C)."""
-        M_rad = math.radians(M)
-        C = (1.914602 - 0.004817 * T - 0.000014 * T**2) * math.sin(M_rad)
-        C += (0.019993 - 0.000101 * T) * math.sin(2 * M_rad)
-        C += 0.000289 * math.sin(3 * M_rad)
-        return C
+    def equation_of_center(jd: float, M: float) -> float:
+    """Calculate equation of center (C)."""
+    T = (jd - AstronomicalCalculator.J2000_EPOCH) / 36525.0
+    M_rad = math.radians(M)
+    C = (1.914602 - 0.004817 * T - 0.000014 * T**2) * math.sin(M_rad)
+    C += (0.019993 - 0.000101 * T) * math.sin(2 * M_rad)
+    C += 0.000289 * math.sin(3 * M_rad)
+    return C
     
     @staticmethod
     def sun_longitude(jd: float) -> float:
