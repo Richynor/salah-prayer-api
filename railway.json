@@ -2,17 +2,27 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "pip install -r requirements.txt"
+    "buildCommand": "pip install --no-cache-dir -r requirements.txt",
+    "nixpacksPlan": {
+      "phases": {
+        "setup": {
+          "cmds": [
+            "pip install --upgrade pip",
+            "pip install --no-cache-dir -r requirements.txt"
+          ]
+        },
+        "install": {
+          "cmds": []
+        }
+      }
+    }
   },
   "deploy": {
     "numReplicas": 1,
     "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 10,
+    "restartPolicyMaxRetries": 3,
     "healthcheckPath": "/health",
-    "healthcheckTimeout": 30,
-    "healthcheckInterval": 60
-  },
-  "database": {
-    "postgresql": false
+    "healthcheckTimeout": 5,
+    "healthcheckInterval": 30
   }
 }
