@@ -14,7 +14,35 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import uvicorn
 
-from .config import settings
+try:
+    from .config import settings
+except ImportError as e:
+    # Fallback configuration for development
+    print(f"⚠️ Configuration import error: {e}")
+    print("⚠️ Using fallback configuration...")
+    
+    class FallbackSettings:
+        APP_NAME = "Salah Prayer API"
+        APP_VERSION = "3.2.0"
+        DEBUG = False
+        ENVIRONMENT = "production"
+        HOST = "0.0.0.0"
+        PORT = 8000
+        WORKERS = 1
+        LOG_LEVEL = "info"
+        CORS_ORIGINS = "*"
+        RATE_LIMIT_ENABLED = True
+        MAX_REQUESTS_PER_MINUTE = 60
+        IPHONE_CACHE_SIZE = 500
+        IPHONE_MAX_AGE = 1440
+        CACHE_TTL_DAILY = 3600
+        CACHE_TTL_MONTHLY = 86400
+        CACHE_TTL_QIBLA = 604800
+        DATABASE_URL = None
+        REDIS_URL = None
+    
+    settings = FallbackSettings()
+    
 from .calculator import ProfessionalAstroCalculator
 from .calibrator import FaziletCalibrator
 from .cache import iphone_cache
