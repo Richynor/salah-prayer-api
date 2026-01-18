@@ -1,11 +1,7 @@
 """
-Salah Prayer API - Application Package
+Salah Prayer API - Professional Prayer Times Service
 """
-__version__ = "1.0.0"
 
-# Export main components
-from app.celery_app import celery_app
-from app.iphone_cache import iphone_cache
-from app.database import db
-
-__all__ = ['celery_app', 'iphone_cache', 'db', '__version__']
+__version__ = "3.1.0"
+__author__ = "Fazilet Prayer Times API Team"
+__description__ = "Production-ready prayer times API with iPhone optimization"
