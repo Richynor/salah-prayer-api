@@ -1,5 +1,5 @@
 """
-Database connection and models for salah_prayer_api.
+Database connection and models for SalatAPI.
 """
 
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, JSON
@@ -66,15 +66,18 @@ class Database:
     """Database connection manager."""
     
     def __init__(self):
-        self.database_url = os.getenv('DATABASE_URL', 'sqlite:///salah_prayer_api.db')
+        self.database_url = os.getenv('DATABASE_URL', 'sqlite:///salatapi.db')
         self.engine = create_engine(self.database_url)
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
     
     def init_db(self):
-    """Initialize database tables."""
-    # Temporarily disable database initialization
-    # Base.metadata.create_all(bind=self.engine)
-    print("Database initialization skipped - running in cache-only mode")
+        """Initialize database tables - gracefully handle missing database."""
+        try:
+            Base.metadata.create_all(bind=self.engine)
+            print("Database initialized successfully")
+        except Exception as e:
+            print(f"Database initialization skipped: {e}")
+            print("Running in cache-only mode (no database required)")
     
     def get_session(self):
         """Get database session."""
@@ -86,13 +89,3 @@ class Database:
 
 # Singleton database instance
 db = Database()
-
-
-def init_db(self):
-    """Initialize database tables - gracefully handle missing database."""
-    try:
-        Base.metadata.create_all(bind=self.engine)
-        print("Database initialized successfully")
-    except Exception as e:
-        print(f"Database initialization skipped: {e}")
-        print("Running in cache-only mode (no database required)")
