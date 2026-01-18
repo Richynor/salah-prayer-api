@@ -4,14 +4,23 @@
     "builder": "NIXPACKS",
     "buildCommand": "pip install --upgrade pip && pip install -r requirements.txt",
     "nixpacksConfig": {
-      "providers": ["python"]
+      "providers": ["python"],
+      "phases": {
+        "setup": {
+          "nixPkgs": ["gcc"]
+        },
+        "install": {
+          "cmds": ["pip install -r requirements.txt"]
+        }
+      }
     }
   },
   "deploy": {
-    "startCommand": "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1",
+    "startCommand": "uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1",
     "healthcheckPath": "/health",
-    "healthcheckTimeout": 30,
-    "restartPolicyType": "ON_FAILURE"
+    "healthcheckTimeout": 10,
+    "restartPolicyType": "ON_FAILURE",
+    "numReplicas": 1
   },
   "env": {
     "ENVIRONMENT": "production",
@@ -20,12 +29,12 @@
     "WORKERS": "1",
     "LOG_LEVEL": "info",
     "CORS_ORIGINS": "*",
-    "IPHONE_CACHE_SIZE": "500",
+    "IPHONE_CACHE_SIZE": "1000",
     "IPHONE_MAX_AGE": "1440",
     "CACHE_TTL_DAILY": "3600",
     "CACHE_TTL_MONTHLY": "86400",
     "CACHE_TTL_QIBLA": "604800",
     "RATE_LIMIT_ENABLED": "true",
-    "MAX_REQUESTS_PER_MINUTE": "60"
+    "MAX_REQUESTS_PER_MINUTE": "120"
   }
 }
