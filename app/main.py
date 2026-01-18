@@ -19,10 +19,10 @@ from fastapi_cache.decorator import cache
 import redis.asyncio as redis
 from prometheus_client import Counter, Histogram, generate_latest
 
-from api.calculations import AstronomicalCalculator
-from api.calibrations import FaziletCalibration
-from api.models import *
-from api.database import db, PrayerTimesCache, MonthlyTimesCache
+from app.calculations import AstronomicalCalculator
+from app.calibrations import FaziletCalibration
+from app.models import *
+from app.database import db, PrayerTimesCache, MonthlyTimesCache
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
