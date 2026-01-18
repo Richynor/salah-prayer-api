@@ -1,4 +1,3 @@
-cat > /app/app/calculations.py << 'EOF'
 """
 PROFESSIONAL ASTRONOMICAL CALCULATIONS
 High-precision prayer time calculations using verified algorithms.
