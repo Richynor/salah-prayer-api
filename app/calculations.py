@@ -6,8 +6,7 @@ Calibrated to match Fazilet exactly.
 
 import math
 from datetime import datetime, date, timedelta
-from typing import Dict, Optional, Tuple
-import numpy as np
+from typing import Dict, Optional, Tuple, Any
 
 
 class AstronomicalCalculator:
@@ -57,7 +56,6 @@ class AstronomicalCalculator:
     @staticmethod
     def equation_of_center(jd: float, M: float) -> float:
         """Calculate equation of center (C)."""
-        import math  # Explicit import to avoid any issues
         T = (jd - AstronomicalCalculator.J2000_EPOCH) / 36525.0
         M_rad = math.radians(M)
         C = (1.914602 - 0.004817 * T - 0.000014 * T**2) * math.sin(M_rad)
@@ -68,7 +66,6 @@ class AstronomicalCalculator:
     @staticmethod
     def sun_longitude(jd: float) -> float:
         """Calculate true solar longitude."""
-        import math
         M = AstronomicalCalculator.mean_solar_anomaly(jd)
         C = AstronomicalCalculator.equation_of_center(jd, M)
         L = AstronomicalCalculator.mean_solar_longitude(jd)
@@ -77,7 +74,6 @@ class AstronomicalCalculator:
     @staticmethod
     def sun_declination(jd: float) -> float:
         """Calculate sun's declination angle."""
-        import math
         L = AstronomicalCalculator.sun_longitude(jd)
         L_rad = math.radians(L)
         e_rad = math.radians(AstronomicalCalculator.OBLIQUITY_ECLIPTIC)
@@ -88,7 +84,6 @@ class AstronomicalCalculator:
     @staticmethod
     def equation_of_time(jd: float) -> float:
         """Calculate equation of time in minutes."""
-        import math
         L = AstronomicalCalculator.mean_solar_longitude(jd)
         M = AstronomicalCalculator.mean_solar_anomaly(jd)
         C = AstronomicalCalculator.equation_of_center(jd, M)
@@ -116,7 +111,6 @@ class AstronomicalCalculator:
     @staticmethod
     def sun_hour_angle(latitude: float, declination: float, angle: float) -> Optional[float]:
         """Calculate sun hour angle for a given angle below horizon."""
-        import math
         lat_rad = math.radians(latitude)
         dec_rad = math.radians(declination)
         angle_rad = math.radians(angle)
@@ -141,7 +135,6 @@ class AstronomicalCalculator:
     @staticmethod
     def calculate_asr(latitude: float, declination: float, shadow_factor: float = 1.0) -> Optional[float]:
         """Calculate Asr time based on shadow length."""
-        import math
         # Standard Asr: shadow = object length (shadow_factor = 1)
         # Hanafi Asr: shadow = 2 * object length (shadow_factor = 2)
         
@@ -170,7 +163,6 @@ class AstronomicalCalculator:
     @staticmethod
     def time_from_decimal(decimal_hours: float) -> Tuple[int, int]:
         """Convert decimal hours to (hour, minute)."""
-        import math
         if decimal_hours < 0:
             decimal_hours += 24
         elif decimal_hours >= 24:
@@ -202,8 +194,10 @@ class AstronomicalCalculator:
         isha_angle: float = 17.0,
         asr_shadow_factor: float = 1.0
     ) -> Dict[str, str]:
-        """Calculate base prayer times without calibrations."""
-        import math
+        """
+        Calculate base prayer times without calibrations.
+        This is the CORE calculation that was failing due to math import issues.
+        """
         # Create datetime at noon for calculations
         dt = datetime(date_obj.year, date_obj.month, date_obj.day, 12, 0, 0)
         jd = AstronomicalCalculator.julian_day(dt)
