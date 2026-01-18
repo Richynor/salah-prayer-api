@@ -61,31 +61,32 @@ class iPhoneOptimizedCache:
         key = self.generate_cache_key(latitude, longitude, date_str, country)
         
         # Calculate smart expiration based on date
-        today = datetime.now().date().isoformat()
-        target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
-        
-        if date_str == today:
-            # Today's times: cache until next day
-            expire_minutes = 1440  # 24 hours
-        elif target_date > datetime.now().date():
-            # Future date: cache longer
-            expire_minutes = 10080  # 7 days
-        else:
-            # Past date: cache indefinitely (won't change)
-            expire_minutes = 525600  # 1 year
+        try:
+            today = datetime.now().date().isoformat()
+            target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            
+            if date_str == today:
+                # Today's times: cache until next day
+                expire_minutes = 1440  # 24 hours
+            elif target_date > datetime.now().date():
+                # Future date: cache longer
+                expire_minutes = 10080  # 7 days
+            else:
+                # Past date: cache indefinitely (won't change)
+                expire_minutes = 525600  # 1 year
+        except:
+            # Default expiration
+            expire_minutes = 1440
             
         self.set(key, data, expire_minutes)
     
     def get_stats(self) -> Dict:
         """Get cache statistics for monitoring."""
+        total = self._hits + self._misses
         return {
             "hits": self._hits,
             "misses": self._misses,
-            "hit_rate": self._hits / (self._hits + self._misses) if (self._hits + self._misses) > 0 else 0,
+            "hit_rate": self._hits / total if total > 0 else 0,
             "active_entries": len(self._cache),
             "memory_usage_mb": sum(len(str(v)) for v in self._cache.values()) / 1024 / 1024
         }
-
-
-# Global cache instance
-iphone_cache = iPhoneOptimizedCache()
