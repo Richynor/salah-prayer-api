@@ -86,3 +86,13 @@ class Database:
 
 # Singleton database instance
 db = Database()
+
+
+def init_db(self):
+    """Initialize database tables - gracefully handle missing database."""
+    try:
+        Base.metadata.create_all(bind=self.engine)
+        print("Database initialized successfully")
+    except Exception as e:
+        print(f"Database initialization skipped: {e}")
+        print("Running in cache-only mode (no database required)")
