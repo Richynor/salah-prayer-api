@@ -8,7 +8,6 @@ import logging
 import os
 from datetime import datetime, timedelta, date as date_type
 from typing import Dict, List, Optional
-import math
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,14 +15,18 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from prometheus_client import Counter, Histogram, generate_latest
 
+# Import local modules - FIXED IMPORTS
 from app.calculations import AstronomicalCalculator
 from app.calibrations import FaziletCalibration
 from app.models import *
 from app.database import db
-from app.iphonecache import iPhoneOptimizedCache  # Fixed import name
+from app.iphonecache import iphone_cache  # Import the global instance
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 # Create FastAPI app
@@ -55,9 +58,6 @@ REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests', ['method',
 REQUEST_LATENCY = Histogram('http_request_duration_seconds', 'HTTP request latency', ['endpoint'])
 CACHE_HITS = Counter('cache_hits_total', 'Cache hits', ['endpoint'])
 CACHE_MISSES = Counter('cache_misses_total', 'Cache misses', ['endpoint'])
-
-# Initialize cache
-iphone_cache = iPhoneOptimizedCache()
 
 # Startup event
 @app.on_event("startup")
