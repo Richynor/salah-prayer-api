@@ -187,3 +187,51 @@ class FaziletCalibrator:
                 'note': data['note']
             })
         return countries
+
+    # Simple timezone database for major cities
+    CITY_TIMEZONES = {
+        # Norway
+        'oslo': 1.0,      # UTC+1 in winter, UTC+2 in summer
+        'bergen': 1.0,
+        'trondheim': 1.0,
+        'stavanger': 1.0,
+        'tromso': 1.0,
+        
+        # Turkey (always UTC+3)
+        'istanbul': 3.0,
+        'ankara': 3.0,
+        'izmir': 3.0,
+        'antalya': 3.0,
+        
+        # South Korea (always UTC+9)
+        'seoul': 9.0,
+        'busan': 9.0,
+        'incheon': 9.0,
+        'daegu': 9.0,
+        
+        # Tajikistan (UTC+5)
+        'dushanbe': 5.0,
+        'khujand': 5.0,
+        
+        # Uzbekistan (UTC+5)
+        'tashkent': 5.0,
+        'samarkand': 5.0,
+        
+        # Russia (Moscow UTC+3)
+        'moscow': 3.0,
+        'kazan': 3.0
+    }
+    
+    @classmethod
+    def estimate_timezone(cls, latitude: float, longitude: float) -> float:
+        """Better timezone estimation."""
+        # Simple estimation based on longitude
+        tz = round(longitude / 15.0)
+        
+        # Cap to reasonable range
+        if tz > 12:
+            tz = 12
+        elif tz < -12:
+            tz = -12
+            
+        return tz
