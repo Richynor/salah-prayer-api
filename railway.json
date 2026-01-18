@@ -1,13 +1,17 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS"
+    "builder": "NIXPACKS",
+    "buildCommand": "pip install --upgrade pip && pip install -r requirements.txt",
+    "nixpacksConfig": {
+      "providers": ["python"]
+    }
   },
   "deploy": {
-    "numReplicas": 1,
-    "restartPolicyType": "ON_FAILURE",
+    "startCommand": "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1",
     "healthcheckPath": "/health",
-    "healthcheckTimeout": 10
+    "healthcheckTimeout": 30,
+    "restartPolicyType": "ON_FAILURE"
   },
   "env": {
     "ENVIRONMENT": "production",
@@ -17,7 +21,11 @@
     "LOG_LEVEL": "info",
     "CORS_ORIGINS": "*",
     "IPHONE_CACHE_SIZE": "500",
-    "APP_NAME": "Salah Prayer API",
-    "APP_VERSION": "3.2.0"
+    "IPHONE_MAX_AGE": "1440",
+    "CACHE_TTL_DAILY": "3600",
+    "CACHE_TTL_MONTHLY": "86400",
+    "CACHE_TTL_QIBLA": "604800",
+    "RATE_LIMIT_ENABLED": "true",
+    "MAX_REQUESTS_PER_MINUTE": "60"
   }
 }
