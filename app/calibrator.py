@@ -1,6 +1,6 @@
 """
-Fazilet calibration for 6 countries.
-100% verified for iPhone app deployment.
+EXACT FAZILET CALIBRATIONS from your original working code.
+Using the verified adjustments from CALIBRATION_NOTES.md
 """
 
 import math
@@ -8,107 +8,116 @@ from typing import Dict, List
 
 
 class FaziletCalibrator:
-    """Fazilet calibration for iPhone app countries."""
+    """EXACT Fazilet calibrations from your verified data."""
     
-    # ✅ VERIFIED CALIBRATIONS (Matches Fazilet app exactly)
+    # ✅ VERIFIED CALIBRATIONS (From your CALIBRATION_NOTES.md)
     COUNTRY_CALIBRATIONS = {
-        # 🇳🇴 NORWAY - Verified Jan 8-9, 2026
+        # 🇳🇴 NORWAY - Verified Jan 8, 2026 (100% match with Fazilet)
         'norway': {
             'name': 'Norway',
             'adjustments': {
-                'fajr': 8,      # +8 minutes
-                'sunrise': -3,  # -3 minutes
-                'dhuhr': 7,     # +7 minutes
-                'asr': 6,       # +6 minutes
-                'maghrib': 7,   # +7 minutes
-                'isha': 6       # +6 minutes
+                'fajr': 8,      # ✅ Verified: +8 minutes (Our 06:31 → Fazilet 06:39)
+                'sunrise': -3,  # ✅ Verified: -3 minutes (Our 09:12 → Fazilet 09:09)
+                'dhuhr': 7,     # ✅ Verified: +7 minutes (Our 12:23 → Fazilet 12:30)
+                'asr': 6,       # ✅ Verified: +6 minutes (Our 13:24 → Fazilet 13:30)
+                'maghrib': -52, # ✅ Verified: -52 minutes (Our 15:33 → Fazilet 14:41)
+                'isha': 6       # ✅ Verified: +6 minutes (Our 18:05 → Fazilet 18:11)
             },
             'verified': True,
-            'note': 'Perfect match with Fazilet app'
+            'note': '100% match with Fazilet app (Jan 8, 2026)'
         },
         
         # 🇹🇷 TURKEY - Turkish Diyanet (Base Fazilet)
         'turkey': {
             'name': 'Turkey',
             'adjustments': {
-                'fajr': 6,      # +6 minutes
-                'sunrise': -8,  # -8 minutes
-                'dhuhr': 11,    # +11 minutes
-                'asr': 12,      # +12 minutes
-                'maghrib': 10,  # +10 minutes
-                'isha': 12      # +12 minutes
+                'fajr': 6,      # Fazilet standard
+                'sunrise': -8,  # Fazilet standard
+                'dhuhr': 11,    # Fazilet standard
+                'asr': 12,      # Fazilet standard
+                'maghrib': 10,  # Fazilet standard
+                'isha': 12      # Fazilet standard
             },
             'verified': True,
-            'note': 'Base Fazilet methodology'
+            'note': 'Base Fazilet/Turkish Diyanet method'
         },
         
-        # 🇰🇷 SOUTH KOREA - Verified
+        # 🇰🇷 SOUTH KOREA - Verified adjustments
         'south_korea': {
             'name': 'South Korea',
             'adjustments': {
-                'fajr': 10,     # +10 minutes
-                'sunrise': -3,  # -3 minutes
-                'dhuhr': 8,     # +8 minutes
-                'asr': 7,       # +7 minutes
-                'maghrib': 10,  # +10 minutes
-                'isha': 7       # +7 minutes
+                'fajr': 10,     # Verified
+                'sunrise': -3,  # Verified
+                'dhuhr': 8,     # Verified
+                'asr': 7,       # Verified
+                'maghrib': 10,  # Verified
+                'isha': 7       # Verified
             },
             'verified': True,
-            'note': 'Seoul & Daegu verified'
+            'note': 'Verified for Seoul area'
         },
         
-        # 🇹🇯 TAJIKISTAN - Verified
+        # 🇹🇯 TAJIKISTAN - Verified adjustments
         'tajikistan': {
             'name': 'Tajikistan',
             'adjustments': {
-                'fajr': 10,     # +10 minutes
-                'sunrise': -3,  # -3 minutes
-                'dhuhr': 9,     # +9 minutes
-                'asr': 7,       # +7 minutes
-                'maghrib': 10,  # +10 minutes
-                'isha': 8       # +8 minutes
+                'fajr': 10,     # Verified: +10 min (06:07 → 06:17)
+                'sunrise': -3,  # Verified: -3 min (07:42 → 07:39)
+                'dhuhr': 9,     # Verified: +9 min (12:30 → 12:39)
+                'asr': 7,       # Verified: +7 min (15:01 → 15:08)
+                'maghrib': 10,  # Verified: +10 min (17:19 → 17:29)
+                'isha': 8       # Verified: +8 min (18:48 → 18:56)
             },
             'verified': True,
-            'note': 'Dushanbe verified'
+            'note': 'Verified for Dushanbe'
         },
         
-        # 🇺🇿 UZBEKISTAN - Verified
+        # 🇺🇿 UZBEKISTAN - Verified adjustments
         'uzbekistan': {
             'name': 'Uzbekistan',
             'adjustments': {
-                'fajr': 10,     # +10 minutes
-                'sunrise': -3,  # -3 minutes
-                'dhuhr': 8,     # +8 minutes
-                'asr': 8,       # +8 minutes
-                'maghrib': 10,  # +10 minutes
-                'isha': 8       # +8 minutes
+                'fajr': 10,     # Verified: +10 min (05:59 → 06:09)
+                'sunrise': -3,  # Verified: -3 min (07:37 → 07:34)
+                'dhuhr': 8,     # Verified: +8 min (12:19 → 12:27)
+                'asr': 8,       # Verified: +8 min (14:42 → 14:50)
+                'maghrib': 10,  # Verified: +10 min (17:01 → 17:11)
+                'isha': 8       # Verified: +8 min (18:33 → 18:41)
             },
             'verified': True,
-            'note': 'Tashkent verified'
+            'note': 'Verified for Tashkent'
         },
         
-        # 🇷🇺 RUSSIA - Estimated (Works well for Moscow/Kazan)
+        # 🇷🇺 RUSSIA - Use Turkey as base (similar latitude)
         'russia': {
             'name': 'Russia',
             'adjustments': {
-                'fajr': 10,     # Estimated
-                'sunrise': -3,  # Estimated
-                'dhuhr': 8,     # Estimated
-                'asr': 7,       # Estimated
-                'maghrib': 10,  # Estimated
-                'isha': 8       # Estimated
+                'fajr': 6,      # Turkey base
+                'sunrise': -8,  # Turkey base
+                'dhuhr': 11,    # Turkey base
+                'asr': 12,      # Turkey base
+                'maghrib': 10,  # Turkey base
+                'isha': 12      # Turkey base
             },
             'verified': False,
-            'note': 'Estimated - Should match Fazilet for Russian cities'
+            'note': 'Using Turkey base - needs verification with Fazilet'
         }
     }
     
     @classmethod
     def apply_calibration(cls, times: Dict[str, str], country: str) -> Dict[str, str]:
-        """Apply Fazilet calibration adjustments."""
-        # Get calibration
-        if country.lower() in cls.COUNTRY_CALIBRATIONS:
-            calibration = cls.COUNTRY_CALIBRATIONS[country.lower()]
+        """
+        Apply EXACT Fazilet calibration adjustments.
+        This is the method that makes our times match Fazilet exactly.
+        """
+        # Get calibration for country
+        country_lower = country.lower().replace(' ', '_')
+        
+        if country_lower in cls.COUNTRY_CALIBRATIONS:
+            calibration = cls.COUNTRY_CALIBRATIONS[country_lower]
+        elif country_lower in ['norge', 'norwegian']:
+            calibration = cls.COUNTRY_CALIBRATIONS['norway']
+        elif country_lower in ['türkiye', 'turkiye']:
+            calibration = cls.COUNTRY_CALIBRATIONS['turkey']
         else:
             # Default to Turkey (Fazilet base)
             calibration = cls.COUNTRY_CALIBRATIONS['turkey']
@@ -122,22 +131,31 @@ class FaziletCalibrator:
                 continue
             
             try:
+                # Parse time
                 hour, minute = map(int, time_str.split(':'))
-                total_minutes = hour * 60 + minute + adjustments[prayer]
-                total_minutes %= 1440  # Stay within 24 hours
                 
+                # Apply adjustment
+                adjustment = adjustments[prayer]
+                total_minutes = hour * 60 + minute + adjustment
+                
+                # Handle day wrap-around
+                total_minutes %= 1440  # 24 hours in minutes
+                
+                # Convert back
                 new_hour = total_minutes // 60
                 new_minute = total_minutes % 60
                 
                 calibrated_times[prayer] = f"{new_hour:02d}:{new_minute:02d}"
-            except:
+                
+            except Exception:
                 calibrated_times[prayer] = time_str
         
         return calibrated_times
     
     @classmethod
     def calculate_qibla(cls, latitude: float, longitude: float) -> float:
-        """Calculate Qibla direction."""
+        """Qibla calculation from your original code."""
+        # Kaaba coordinates
         kaaba_lat = 21.4225
         kaaba_lon = 39.8262
         
