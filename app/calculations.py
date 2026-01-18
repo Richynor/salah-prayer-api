@@ -1,5 +1,3 @@
-# Completely replace calculations.py with corrected version
-cat > /app/app/calculations.py << 'EOF'
 """
 PROFESSIONAL ASTRONOMICAL CALCULATIONS
 High-precision prayer time calculations using verified algorithms.
@@ -70,7 +68,7 @@ class AstronomicalCalculator:
     def sun_longitude(jd: float) -> float:
         """Calculate true solar longitude."""
         M = AstronomicalCalculator.mean_solar_anomaly(jd)
-        C = AstronomicalCalculator.equation_of_center(jd, M)
+        C = AstronomicalCalculator.equation_of_center(jd, M)  # Fixed: now passing jd and M
         L = AstronomicalCalculator.mean_solar_longitude(jd)
         return (L + C) % 360
     
@@ -248,7 +246,3 @@ class AstronomicalCalculator:
                 times_formatted[prayer] = "N/A"
         
         return times_formatted
-EOF
-
-# Then redeploy
-railway up
