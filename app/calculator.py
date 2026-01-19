@@ -4,9 +4,9 @@ Reusing the exact method from your original working code.
 """
 
 import math
-from datetime import datetime, date
-from typing import Dict, Optional, Tuple
 import logging
+from datetime import datetime, date
+from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
