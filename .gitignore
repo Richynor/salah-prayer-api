@@ -7,7 +7,6 @@ __pycache__/
 build/
 dist/
 *.egg-info/
-.installed.cfg
 *.egg
 
 # Virtual Environment
@@ -21,7 +20,7 @@ env/
 .env.local
 .env.production
 
-# IDE / Editor
+# IDE
 .vscode/
 .idea/
 *.swp
@@ -31,8 +30,8 @@ env/
 .railway/
 
 # OS Files
-.DS_Store
 Thumbs.db
+desktop.ini
 
 # Logs
 *.log
@@ -47,6 +46,3 @@ htmlcov/
 *.db
 *.sqlite
 *.sqlite3
-
-# MyPy
-.mypy_cache/
