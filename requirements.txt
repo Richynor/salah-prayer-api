@@ -23,3 +23,12 @@ orjson==3.9.10
 
 # Logging
 structlog==23.1.0
+
+# Optional (for future)
+# asyncpg==0.29.0  # PostgreSQL
+# redis==5.0.1     # Redis cache
+# sqlalchemy==2.0.23
+
+# Development
+black==23.11.0
+flake8==6.1.0
