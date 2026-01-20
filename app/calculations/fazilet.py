@@ -5,7 +5,7 @@ Implements Turkish Diyanet method with country-specific adjustments.
 
 from datetime import datetime, timedelta
 from typing import Dict, Optional, Tuple
-from .astronomy import AstronomicalCalculations
+from .astronomy import AstronomicalCalculations  # ← IMPORTANT: Relative import!
 import math
 
 
@@ -152,7 +152,9 @@ class FaziletMethodology:
         if 'arctic_adjustments' in config:
             arctic_config = config['arctic_adjustments']
             if abs(latitude) >= arctic_config.get('latitude_threshold', 65.0):
-                arctic_adj = arctic_config['adjustment_minutes']        # Calculate Julian Day for the date at noon
+                arctic_adj = arctic_config['adjustment_minutes']
+        
+        # Calculate Julian Day for the date at noon
         # Handle both date and datetime objects
         if isinstance(date, datetime):
             noon_date = date.replace(hour=12, minute=0, second=0, microsecond=0)
