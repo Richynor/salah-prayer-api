@@ -22,6 +22,7 @@ from app.models import (
     Location,
     MonthData
 )
+# ✅ CORRECT IMPORT - Line 25
 from app.calculations.fazilet import FaziletMethodology
 from app.cache import cache
 from app.config import settings
