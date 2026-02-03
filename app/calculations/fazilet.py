@@ -1,5 +1,5 @@
 """
-Fazilet prayer times calculation methodology - PRODUCTION READY
+Gido prayer times calculation methodology - PRODUCTION READY
 Implements Turkish Diyanet method with country-specific adjustments.
 
 ✅ VERIFIED ACCURACY:
@@ -15,7 +15,7 @@ import math
 
 class FaziletMethodology:
     """
-    Fazilet prayer times calculation following Turkish Diyanet methodology.
+    Gido prayer times calculation following Turkish Diyanet methodology.
     Optimized for Norway, South Korea, Turkey, Tajikistan, and Uzbekistan.
     """
     
