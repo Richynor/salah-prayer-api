@@ -3,7 +3,7 @@ Salah Prayer API Package - Production Ready
 """
 
 __version__ = "3.2.0"
-__author__ = "Salah Prayer API Team"
+__author__ = "Gido Prayer Times API Team"
 __description__ = "Professional prayer times API with 97% global accuracy"
 
 # Version check
