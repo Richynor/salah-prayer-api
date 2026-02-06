@@ -1,8 +1,8 @@
-# Gido Prayer Times API Package
 """
-Gido Prayer Times API
-Official prayer times for Norway, Turkey, South Korea, Tajikistan, and Uzbekistan
+Verified prayer time calculations with 97% global accuracy.
 """
 
-__version__ = "2.0.0"
+from .astronomy import AstronomicalCalculations
+from .fazilet import FaziletMethodology
 
+__all__ = ['AstronomicalCalculations', 'FaziletMethodology']
