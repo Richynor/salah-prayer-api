@@ -1,10 +1,10 @@
+# Gido Prayer Times API Package
 """
-Salah Prayer API Package - Production Ready
+Gido Prayer Times API
+Official prayer times for Norway, Turkey, South Korea, Tajikistan, and Uzbekistan
 """
 
-__version__ = "3.2.0"
-__author__ = "Gido Prayer Times API Team"
-__description__ = "Professional prayer times API with 97% global accuracy"
+__version__ = "2.0.0"
 
 # Version check
 import sys
