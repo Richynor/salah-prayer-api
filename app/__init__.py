@@ -1,8 +1,20 @@
 """
-Verified prayer time calculations with 97% global accuracy.
+Gido Prayer Times API Package
+Official prayer times for Norway, Turkey, South Korea, Tajikistan, and Uzbekistan
 """
 
-from .astronomy import AstronomicalCalculations
-from .fazilet import FaziletMethodology
+__version__ = "4.0.0"
+__author__ = "Gido Prayer API Team"
+__description__ = "Prayer times API: Fazilet calculations + Official sources"
 
-__all__ = ['AstronomicalCalculations', 'FaziletMethodology']
+# Version check
+import sys
+if sys.version_info < (3, 8):
+    raise RuntimeError("Python 3.8 or higher is required")
+
+# ✅ RELATIVE IMPORTS (note the dots!)
+from .calculations.fazilet import FaziletMethodology
+from .cache import cache
+from .config import settings
+
+__all__ = ['FaziletMethodology', 'cache', 'settings', '__version__']
