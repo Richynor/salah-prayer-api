@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 class Settings(BaseModel):
     """Application settings with validation."""
     
-    APP_NAME: str = Field(default="Gido Prayer Times API")
+    APP_NAME: str = Field(default="Salah Prayer API")
     APP_VERSION: str = Field(default="3.2.0")
     DEBUG: bool = Field(default=False)
     ENVIRONMENT: str = Field(default="production")
