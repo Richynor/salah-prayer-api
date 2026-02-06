@@ -1,16 +1,16 @@
 """
 Production-Ready Prayer Times API for Railway Deployment
-COMPLETE VERSION with Uzbekistan Official Support
+✅ Fazilet calculations (97% global accuracy)
+✅ Uzbekistan official times (islam.uz)
 """
 
-from fastapi import FastAPI, HTTPException, Request, Query
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from datetime import datetime, date, timedelta
 from typing import Dict, Optional
 import time
 import logging
-import asyncio
 
 from app.models import (
     PrayerTimesRequest,
@@ -40,30 +40,31 @@ logger = logging.getLogger(__name__)
 
 # Create FastAPI app
 app = FastAPI(
-    title=settings.APP_NAME,
-    version=settings.APP_VERSION,
-    description="Professional Prayer Times API - Norway, South Korea, Tajikistan, Uzbekistan",
+    title="Gido Prayer Times API",
+    version="4.0.0",
+    description="Prayer Times API: Fazilet (Norway, Turkey, South Korea) + Official sources (Uzbekistan)",
     docs_url="/docs",
     redoc_url="/redoc"
 )
 
-# Initialize Uzbekistan service
+# Initialize services
 uzbek_service = UzbekistanPrayerTimesService()
 
 # Store start time for uptime tracking
 @app.on_event("startup")
 async def startup_event():
     app.state.start_time = time.time()
-    logger.info(f"🚀 {settings.APP_NAME} v{settings.APP_VERSION} starting...")
+    logger.info(f"🚀 Gido Prayer Times API v4.0.0 starting...")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     logger.info(f"Cache size: {settings.IPHONE_CACHE_SIZE}")
-    logger.info(f"✅ Uzbekistan Official support enabled (13 cities)")
+    logger.info(f"✅ Fazilet: Norway, Turkey, South Korea, and 30+ countries")
+    logger.info(f"✅ Uzbekistan: {len(UZBEKISTAN_CITIES)} cities from islam.uz")
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Close HTTP clients on shutdown."""
+    """Cleanup on shutdown."""
     await uzbek_service.close()
-    logger.info("🛑 Shutting down gracefully...")
+    logger.info("Services closed successfully")
 
 # Add CORS middleware
 app.add_middleware(
@@ -106,11 +107,14 @@ async def health_check():
     """Health check endpoint for Railway."""
     return {
         "status": "healthy",
-        "version": settings.APP_VERSION,
+        "version": "4.0.0",
         "environment": settings.ENVIRONMENT,
         "timestamp": datetime.now().isoformat(),
         "cache_enabled": True,
-        "uzbekistan_support": True
+        "services": {
+            "fazilet": "operational",
+            "uzbekistan": "operational"
+        }
     }
 
 
@@ -118,21 +122,38 @@ async def health_check():
 async def root():
     """Root endpoint with API information."""
     return {
-        "name": settings.APP_NAME,
-        "version": settings.APP_VERSION,
+        "name": "Gido Prayer Times API",
+        "version": "4.0.0",
         "status": "running",
-        "accuracy": "97% global (verified)",
-        "supported_countries": ["Norway", "South Korea", "Tajikistan", "Uzbekistan"],
+        "services": {
+            "fazilet": {
+                "accuracy": "97% global (verified across 6 continents)",
+                "countries": FaziletMethodology.get_supported_countries(),
+                "type": "calculation"
+            },
+            "uzbekistan": {
+                "source": "islam.uz (Sheikh Muhammad Sodiq Muhammad Yusuf)",
+                "cities": len(UZBEKISTAN_CITIES),
+                "type": "official scraper"
+            }
+        },
         "endpoints": {
-            "daily_times": "/api/v1/times/daily",
-            "bulk_times": "/api/v1/times/bulk",
-            "qibla": "/api/v1/qibla",
-            "uzbekistan_cities": "/api/uzbekistan/cities",
-            "uzbekistan_monthly": "/api/uzbekistan/monthly/{city}/{year}/{month}",
-            "uzbekistan_auto": "/api/uzbekistan/auto/{year}/{month}",
-            "health": "/health",
-            "metrics": "/metrics",
-            "docs": "/docs"
+            "fazilet": {
+                "daily_times": "/api/v1/times/daily",
+                "bulk_times": "/api/v1/times/bulk",
+                "qibla": "/api/v1/qibla"
+            },
+            "uzbekistan": {
+                "cities": "/api/uzbekistan/cities",
+                "monthly": "/api/uzbekistan/monthly/{city}/{year}/{month}",
+                "current": "/api/uzbekistan/current/{city}",
+                "today": "/api/uzbekistan/today/{city}"
+            },
+            "system": {
+                "health": "/health",
+                "metrics": "/metrics",
+                "docs": "/docs"
+            }
         },
         "optimized_for": "iPhone apps with battery-efficient caching",
         "cache_stats": cache.get_stats()
@@ -148,20 +169,282 @@ async def get_metrics():
     return {
         "uptime_seconds": round(uptime, 2),
         "uptime_hours": round(uptime / 3600, 2),
-        "version": settings.APP_VERSION,
+        "version": "4.0.0",
         "cache": stats,
         "environment": settings.ENVIRONMENT,
-        "battery_optimized": True
+        "battery_optimized": True,
+        "services": {
+            "fazilet": "operational",
+            "uzbekistan": "operational"
+        }
     }
 
 
 # ============================================================================
-# UZBEKISTAN OFFICIAL ENDPOINTS
+# FAZILET PRAYER TIMES ENDPOINTS
+# ============================================================================
+
+@app.post("/api/v1/times/daily", response_model=PrayerTimesResponse)
+async def get_daily_prayer_times(request: PrayerTimesRequest):
+    """
+    Get prayer times for a specific day using Fazilet methodology.
+    
+    ✅ Verified 97% accuracy globally
+    ✅ Works for 30+ countries
+    ✅ Battery-optimized with caching
+    """
+    try:
+        start_time = time.time()
+        
+        # Parse date
+        target_date = parse_date(request.date)
+        date_str = target_date.strftime("%Y-%m-%d")
+        
+        # Determine timezone
+        if request.timezone_offset is None:
+            timezone_offset = estimate_timezone(request.longitude)
+        else:
+            timezone_offset = request.timezone_offset
+        
+        # Normalize country
+        country = request.country.lower().strip()
+        
+        # Check cache first
+        cached = cache.get_daily_prayer_times(
+            request.latitude,
+            request.longitude,
+            date_str,
+            country
+        )
+        
+        if cached:
+            logger.info(f"✅ Cache HIT for {country} on {date_str}")
+            response = PrayerTimesResponse.from_calculation(cached, cache_hit=True)
+            response.calculation_time_ms = (time.time() - start_time) * 1000
+            return response
+        
+        # Calculate prayer times using VERIFIED method
+        logger.info(f"🔄 Calculating for {country} on {date_str}")
+        
+        times = FaziletMethodology.calculate_prayer_times(
+            latitude=request.latitude,
+            longitude=request.longitude,
+            date=target_date,
+            timezone_offset=timezone_offset,
+            country=country
+        )
+        
+        # Calculate Qibla
+        qibla = FaziletMethodology.calculate_qibla(
+            latitude=request.latitude,
+            longitude=request.longitude
+        )
+        
+        # Create response data
+        daily_data = DailyPrayerTimes(
+            date=date_str,
+            location=Location(latitude=request.latitude, longitude=request.longitude),
+            country=country,
+            timezone_offset=timezone_offset,
+            prayer_times=times,
+            qibla_direction=qibla,
+            calibration_applied=True
+        )
+        
+        # Cache the result
+        cache.set_daily_prayer_times(
+            request.latitude,
+            request.longitude,
+            date_str,
+            country,
+            daily_data
+        )
+        
+        # Create response
+        response = PrayerTimesResponse.from_calculation(daily_data, cache_hit=False)
+        response.calculation_time_ms = (time.time() - start_time) * 1000
+        
+        logger.info(f"✅ Calculated in {response.calculation_time_ms:.1f}ms")
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"❌ Error calculating prayer times: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/v1/times/bulk", response_model=BulkPrayerTimesResponse)
+async def get_bulk_prayer_times(request: BulkPrayerTimesRequest):
+    """
+    Get prayer times for 15 months (past 3 + next 12).
+    
+    ✅ Optimized for iPhone monthly tables
+    ✅ Reduces API calls by 540x
+    ✅ Cached for 7 days
+    """
+    try:
+        start_time = time.time()
+        
+        # Determine timezone
+        if request.timezone_offset is None:
+            timezone_offset = estimate_timezone(request.longitude)
+        else:
+            timezone_offset = request.timezone_offset
+        
+        country = request.country.lower().strip()
+        
+        # Check cache
+        cached = cache.get_bulk_prayer_times(
+            request.latitude,
+            request.longitude,
+            country
+        )
+        
+        if cached:
+            logger.info(f"✅ Bulk cache HIT for {country}")
+            cached["cache_hit"] = True
+            cached["calculation_time_ms"] = (time.time() - start_time) * 1000
+            return BulkPrayerTimesResponse(**cached)
+        
+        # Calculate for 15 months
+        logger.info(f"🔄 Calculating 15 months for {country}")
+        
+        today = date.today()
+        start_date = today - timedelta(days=90)  # 3 months ago
+        
+        months_data = {}
+        
+        for month_offset in range(15):  # 15 months total (past 3 + next 12)
+            current_date = start_date + timedelta(days=30 * month_offset)
+            year = current_date.year
+            month = current_date.month
+            
+            # Get number of days in month
+            if month == 12:
+                next_month = date(year + 1, 1, 1)
+            else:
+                next_month = date(year, month + 1, 1)
+            days_in_month = (next_month - date(year, month, 1)).days
+            
+            # Calculate for each day
+            daily_times = {}
+            for day in range(1, days_in_month + 1):
+                calc_date = date(year, month, day)
+                
+                times = FaziletMethodology.calculate_prayer_times(
+                    latitude=request.latitude,
+                    longitude=request.longitude,
+                    date=calc_date,
+                    timezone_offset=timezone_offset,
+                    country=country
+                )
+                
+                daily_times[day] = times
+            
+            # Store month data
+            month_key = f"{year}-{month:02d}"
+            months_data[month_key] = MonthData(
+                year=year,
+                month=month,
+                days_in_month=days_in_month,
+                daily_times=daily_times
+            )
+        
+        # Calculate Qibla
+        qibla = FaziletMethodology.calculate_qibla(
+            latitude=request.latitude,
+            longitude=request.longitude
+        )
+        
+        # Create response
+        response_data = {
+            "latitude": request.latitude,
+            "longitude": request.longitude,
+            "country": country,
+            "timezone_offset": timezone_offset,
+            "qibla_direction": qibla,
+            "months": months_data,
+            "cache_hit": False,
+            "calculation_time_ms": (time.time() - start_time) * 1000,
+            "months_included": 15,
+            "date_range": "Past 3 months + Next 12 months",
+            "optimized_for": "iPhone monthly table",
+            "recommended_refresh": "Once per week"
+        }
+        
+        # Cache the result
+        cache.set_bulk_prayer_times(
+            request.latitude,
+            request.longitude,
+            country,
+            response_data
+        )
+        
+        logger.info(f"✅ Calculated 15 months in {response_data['calculation_time_ms']:.1f}ms")
+        
+        return BulkPrayerTimesResponse(**response_data)
+        
+    except Exception as e:
+        logger.error(f"❌ Error calculating bulk times: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/v1/qibla", response_model=QiblaResponse)
+async def get_qibla_direction(request: QiblaRequest):
+    """
+    Get Qibla direction from any location.
+    
+    ✅ Accurate spherical trigonometry
+    ✅ Cached for 30 days
+    """
+    try:
+        # Check cache
+        cached_qibla = cache.get_qibla(request.latitude, request.longitude)
+        
+        if cached_qibla is not None:
+            logger.info(f"✅ Qibla cache HIT")
+            return QiblaResponse.create(
+                request.latitude,
+                request.longitude,
+                cached_qibla,
+                cache_hit=True
+            )
+        
+        # Calculate Qibla
+        qibla = FaziletMethodology.calculate_qibla(
+            latitude=request.latitude,
+            longitude=request.longitude
+        )
+        
+        # Cache it
+        cache.set_qibla(request.latitude, request.longitude, qibla)
+        
+        logger.info(f"✅ Qibla calculated: {qibla:.2f}°")
+        
+        return QiblaResponse.create(
+            request.latitude,
+            request.longitude,
+            qibla,
+            cache_hit=False
+        )
+        
+    except Exception as e:
+        logger.error(f"❌ Error calculating Qibla: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# UZBEKISTAN OFFICIAL PRAYER TIMES ENDPOINTS
 # ============================================================================
 
 @app.get("/api/uzbekistan/cities")
 async def get_uzbek_cities():
-    """Get list of available Uzbekistan cities with coordinates."""
+    """
+    Get list of available Uzbekistan cities.
+    
+    Returns:
+        Dict of cities with their info
+    """
     try:
         cities = {}
         for key, city in UZBEKISTAN_CITIES.items():
@@ -169,14 +452,14 @@ async def get_uzbek_cities():
                 "id": city.id,
                 "name_ru": city.name_ru,
                 "name_uz": city.name_uz,
-                "name_en": city.name_en,
-                "latitude": city.latitude,
-                "longitude": city.longitude
+                "name_en": city.name_en
             }
         
         return {
             "cities": cities,
-            "count": len(cities)
+            "count": len(cities),
+            "source": "islam.uz",
+            "authority": "Sheikh Muhammad Sodiq Muhammad Yusuf"
         }
     
     except Exception as e:
@@ -184,51 +467,55 @@ async def get_uzbek_cities():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/uzbekistan/nearest")
-async def find_nearest_city(
-    latitude: float = Query(..., description="User's latitude"),
-    longitude: float = Query(..., description="User's longitude")
-):
-    """Find nearest Uzbekistan city to given coordinates (for Chust → Namangan, etc.)."""
-    try:
-        city_key, city_info, distance = uzbek_service.find_nearest_city(latitude, longitude)
-        
-        return {
-            "city_key": city_key,
-            "city_name": city_info.name_en,
-            "city_name_uz": city_info.name_uz,
-            "latitude": city_info.latitude,
-            "longitude": city_info.longitude,
-            "distance_km": round(distance, 2),
-            "use_directly": distance < 50,
-            "recommendation": "use_city_times" if distance < 50 else "calculate_adjustment"
-        }
-    
-    except Exception as e:
-        logger.error(f"Error finding nearest city: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 @app.get("/api/uzbekistan/monthly/{city}/{year}/{month}")
-async def get_uzbek_monthly_times(city: str, year: int, month: int):
-    """Get monthly prayer times for an Uzbekistan city."""
+async def get_uzbek_monthly_times(
+    city: str,
+    year: int,
+    month: int
+):
+    """
+    Get monthly prayer times for an Uzbekistan city.
+    
+    Args:
+        city: City key (e.g., "tashkent", "samarkand")
+        year: Year (e.g., 2026)
+        month: Month (1-12)
+    
+    Returns:
+        Monthly prayer times using Central Asian names:
+        - bomdod (dawn/fajr)
+        - quyosh (sunrise)
+        - peshin (noon/dhuhr)
+        - asr (afternoon)
+        - shom (sunset/maghrib)
+        - khuftan (night/isha)
+    """
     try:
+        # Validate inputs
         if city.lower() not in UZBEKISTAN_CITIES:
             available = ", ".join(UZBEKISTAN_CITIES.keys())
-            raise HTTPException(400, f"Unknown city '{city}'. Available: {available}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unknown city '{city}'. Available: {available}"
+            )
         
         if not (2020 <= year <= 2030):
-            raise HTTPException(400, "Year must be between 2020-2030")
+            raise HTTPException(status_code=400, detail="Year must be between 2020-2030")
         
         if not (1 <= month <= 12):
-            raise HTTPException(400, "Month must be between 1-12")
+            raise HTTPException(status_code=400, detail="Month must be between 1-12")
         
+        # Check cache first
         cache_key = f"uzbekistan:{city}:{year}:{month}"
         cached = cache.get(cache_key)
         if cached:
             logger.info(f"Cache HIT for {cache_key}")
-            return {**cached, "cache_hit": True}
+            return {
+                **cached,
+                "cache_hit": True
+            }
         
+        # Fetch from source
         logger.info(f"Cache MISS for {cache_key}, fetching...")
         daily_times = await uzbek_service.fetch_monthly_times(city, year, month)
         
@@ -237,9 +524,6 @@ async def get_uzbek_monthly_times(city: str, year: int, month: int):
         response = {
             "city": city,
             "city_name": city_info.name_en,
-            "city_name_uz": city_info.name_uz,
-            "latitude": city_info.latitude,
-            "longitude": city_info.longitude,
             "year": year,
             "month": month,
             "source": "islam.uz",
@@ -258,45 +542,64 @@ async def get_uzbek_monthly_times(city: str, year: int, month: int):
             "fetched_at": datetime.now().isoformat()
         }
         
+        # Cache for 24 hours
         cache.set(cache_key, response, ttl=86400)
+        
         return response
     
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error fetching Uzbekistan times: {e}")
-        raise HTTPException(500, f"Failed to fetch prayer times: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch prayer times: {str(e)}")
 
 
 @app.get("/api/uzbekistan/current/{city}")
 async def get_uzbek_current_month(city: str):
-    """Get current month's prayer times for an Uzbekistan city."""
+    """
+    Get current month's prayer times for an Uzbekistan city.
+    
+    Args:
+        city: City key (e.g., "tashkent", "samarkand")
+    
+    Returns:
+        Current month's prayer times
+    """
     now = datetime.now()
     return await get_uzbek_monthly_times(city, now.year, now.month)
 
 
 @app.get("/api/uzbekistan/today/{city}")
 async def get_uzbek_today(city: str):
-    """Get today's prayer times for an Uzbekistan city."""
+    """
+    Get today's prayer times for an Uzbekistan city.
+    
+    Args:
+        city: City key (e.g., "tashkent", "samarkand")
+    
+    Returns:
+        Today's prayer times only
+    """
     try:
         now = datetime.now()
+        
+        # Fetch monthly times
         monthly_data = await get_uzbek_monthly_times(city, now.year, now.month)
         
+        # Extract today
         today_day = now.day
-        today_key = str(today_day)
-        
-        if today_key not in monthly_data["daily_times"]:
-            raise HTTPException(404, f"No prayer times found for day {today_day}")
+        if str(today_day) not in monthly_data["daily_times"]:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No prayer times found for day {today_day}"
+            )
         
         return {
             "city": city,
             "city_name": monthly_data["city_name"],
-            "city_name_uz": monthly_data["city_name_uz"],
-            "latitude": monthly_data["latitude"],
-            "longitude": monthly_data["longitude"],
             "date": now.strftime("%Y-%m-%d"),
             "day": today_day,
-            "times": monthly_data["daily_times"][today_key],
+            "times": monthly_data["daily_times"][str(today_day)],
             "source": "islam.uz",
             "prayer_names": monthly_data["prayer_names"]
         }
@@ -305,185 +608,11 @@ async def get_uzbek_today(city: str):
         raise
     except Exception as e:
         logger.error(f"Error fetching today's Uzbekistan times: {e}")
-        raise HTTPException(500, str(e))
-
-
-@app.get("/api/uzbekistan/auto/{year}/{month}")
-async def get_uzbek_auto_location(
-    year: int,
-    month: int,
-    latitude: float = Query(..., description="User's latitude"),
-    longitude: float = Query(..., description="User's longitude")
-):
-    """Auto-find nearest city and return prayer times (for Chust → Namangan, etc.)."""
-    try:
-        city_key, city_info, distance = uzbek_service.find_nearest_city(latitude, longitude)
-        times_data = await get_uzbek_monthly_times(city_key, year, month)
-        
-        times_data["matched_city"] = {
-            "city_key": city_key,
-            "city_name": city_info.name_en,
-            "distance_km": round(distance, 2),
-            "direct_match": distance < 5,
-            "close_match": distance < 50
-        }
-        times_data["user_location"] = {
-            "latitude": latitude,
-            "longitude": longitude
-        }
-        
-        return times_data
-    
-    except Exception as e:
-        logger.error(f"Error with auto-location: {e}")
-        raise HTTPException(500, str(e))
-
-
-# ============================================================================
-# FAZILET PRAYER TIMES ENDPOINTS (Existing - keeping for Norway/Korea)
-# ============================================================================
-
-@app.post("/api/v1/times/daily", response_model=PrayerTimesResponse)
-async def get_daily_prayer_times(request: PrayerTimesRequest):
-    """Get prayer times for a specific day using Fazilet methodology."""
-    start_time = time.time()
-    
-    try:
-        parsed_date = parse_date(request.date)
-        tz_offset = request.timezone_offset if request.timezone_offset is not None else estimate_timezone(request.longitude)
-        
-        cache_key = f"{request.latitude}:{request.longitude}:{request.country}:{parsed_date}:{tz_offset}"
-        cached_result = cache.get(cache_key)
-        
-        if cached_result:
-            cached_result["cache_hit"] = True
-            cached_result["calculation_time_ms"] = round((time.time() - start_time) * 1000, 2)
-            return cached_result
-        
-        fazilet = FaziletMethodology()
-        result = fazilet.calculate_prayer_times(
-            latitude=request.latitude,
-            longitude=request.longitude,
-            date=parsed_date,
-            timezone_offset=tz_offset,
-            country=request.country
-        )
-        
-        response = PrayerTimesResponse(
-            date=parsed_date.isoformat(),
-            location=Location(latitude=request.latitude, longitude=request.longitude),
-            country=request.country,
-            timezone_offset=tz_offset,
-            prayer_times=result["prayer_times"],
-            qibla_direction=result["qibla_direction"],
-            calibration_applied=result.get("calibration_applied", False),
-            cache_hit=False,
-            calculation_time_ms=round((time.time() - start_time) * 1000, 2),
-            battery_optimized=True
-        )
-        
-        cache.set(cache_key, response.dict(), ttl=86400)
-        return response
-        
-    except Exception as e:
-        logger.error(f"Error calculating prayer times: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/api/v1/times/bulk", response_model=BulkPrayerTimesResponse)
-async def get_bulk_prayer_times(request: BulkPrayerTimesRequest):
-    """Get 3 months of prayer times (current + next 2) for battery optimization."""
-    start_time = time.time()
-    
-    try:
-        tz_offset = request.timezone_offset if request.timezone_offset is not None else estimate_timezone(request.longitude)
-        
-        cache_key = f"bulk:{request.latitude}:{request.longitude}:{request.country}:{tz_offset}"
-        cached_result = cache.get(cache_key)
-        
-        if cached_result:
-            cached_result["cache_hit"] = True
-            cached_result["calculation_time_ms"] = round((time.time() - start_time) * 1000, 2)
-            return cached_result
-        
-        fazilet = FaziletMethodology()
-        current_date = date.today()
-        months_data = {}
-        
-        for month_offset in range(3):
-            target_date = current_date + timedelta(days=30 * month_offset)
-            month_key = f"{target_date.year}-{target_date.month:02d}"
-            
-            month_result = fazilet.calculate_monthly_times(
-                latitude=request.latitude,
-                longitude=request.longitude,
-                year=target_date.year,
-                month=target_date.month,
-                timezone_offset=tz_offset,
-                country=request.country
-            )
-            
-            months_data[month_key] = MonthData(
-                year=target_date.year,
-                month=target_date.month,
-                days_in_month=month_result["days_in_month"],
-                daily_times=month_result["daily_times"]
-            )
-        
-        qibla_result = fazilet.calculate_qibla(request.latitude, request.longitude)
-        
-        response = BulkPrayerTimesResponse(
-            latitude=request.latitude,
-            longitude=request.longitude,
-            country=request.country,
-            timezone_offset=tz_offset,
-            qibla_direction=qibla_result["qibla_direction"],
-            months=months_data,
-            cache_hit=False,
-            calculation_time_ms=round((time.time() - start_time) * 1000, 2),
-            months_included=len(months_data),
-            date_range=f"{min(months_data.keys())} to {max(months_data.keys())}"
-        )
-        
-        cache.set(cache_key, response.dict(), ttl=86400)
-        return response
-        
-    except Exception as e:
-        logger.error(f"Error calculating bulk prayer times: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/api/v1/qibla", response_model=QiblaResponse)
-async def get_qibla_direction(request: QiblaRequest):
-    """Get Qibla direction for given coordinates."""
-    try:
-        cache_key = f"qibla:{request.latitude}:{request.longitude}"
-        cached_result = cache.get(cache_key)
-        
-        if cached_result:
-            cached_result["cache_hit"] = True
-            return cached_result
-        
-        fazilet = FaziletMethodology()
-        result = fazilet.calculate_qibla(request.latitude, request.longitude)
-        
-        response = QiblaResponse(
-            latitude=request.latitude,
-            longitude=request.longitude,
-            qibla_direction=result["qibla_direction"],
-            cache_hit=False
-        )
-        
-        cache.set(cache_key, response.dict(), ttl=86400)
-        return response
-        
-    except Exception as e:
-        logger.error(f"Error calculating qibla: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 # ============================================================================
-# EXCEPTION HANDLERS
+# ERROR HANDLERS
 # ============================================================================
 
 @app.exception_handler(HTTPException)
