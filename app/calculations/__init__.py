@@ -1,8 +1,8 @@
+
 """
-Verified prayer time calculations with 97% global accuracy.
+Calculations package for prayer times
 """
 
-from .astronomy import AstronomicalCalculations
 from .fazilet import FaziletMethodology
 
-__all__ = ['AstronomicalCalculations', 'FaziletMethodology']
+__all__ = ['FaziletMethodology']
